@@ -44,9 +44,18 @@ Auth:
 Core:
 - `GET/POST /api/accounts`
 - `GET/POST /api/categories`
+- `PATCH /api/categories/:id`
+- `POST /api/categories/:id/archive` (`archive`/`unarchive`)
+- `GET /api/categories/:id/impact`
+- `DELETE /api/categories/:id` (wizard payload: reassign or uncategorized, plus child strategy)
 - `GET/POST /api/rules`
 - `GET/POST /api/transactions`
 - `PATCH /api/transactions/:id` (manual category override)
+- `GET/POST /api/tags`
+- `PATCH /api/tags/:id`
+- `GET /api/tags/:id/impact`
+- `DELETE /api/tags/:id`
+- `POST /api/tags/:id/merge`
 - `GET /api/dashboard?preset=day|week|month|year|custom&from&to&currency=NGN|USD`
 
 Imports:
@@ -135,14 +144,33 @@ npm test
 - File storage in local private folder (`storage/uploads`).
 - Cascade delete + physical file cleanup in "Delete my data" flow.
 
-## 10) Screenshots (placeholders)
+## 10) Archive vs Delete Semantics
+
+- Archive is the default removal mode for categories/subcategories.
+- Archived categories are hidden from new-entry pickers (manual entry/import classification), but existing transactions keep historical links and remain visible.
+- Restore is supported via unarchive action.
+- Delete is explicit and wizard-driven:
+  - Reassign references to a target category, or
+  - Move all references to system `Uncategorized` (auto-created if missing and protected from deletion).
+- Delete operations run in one DB transaction and update references in:
+  - transactions
+  - line items
+  - classification rules
+  - import proposed-category mappings
+- Deleting a parent category requires a child strategy:
+  - reassign children to another major category, or
+  - archive children together, or
+  - block until a decision is provided.
+- Tags support edit, delete (detaches associations), and merge (moves associations then removes source tag).
+
+## 11) Screenshots (placeholders)
 
 - `docs/screenshots/dashboard.png`
 - `docs/screenshots/accounts.png`
 - `docs/screenshots/transactions.png`
 - `docs/screenshots/imports-review.png`
 
-## 11) Next Improvements
+## 12) Next Improvements
 
 1. Add account selection step in import wizard before processing.
 2. Add OCR fallback pipeline for scanned PDFs (pdf->image rasterization).
