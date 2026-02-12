@@ -1,0 +1,202 @@
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --ink: #102a43;
+  --muted: #486581;
+  --line: #d9e2ec;
+  --accent: #005f73;
+  --accent-2: #0a9396;
+  --danger: #b42318;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 85% 10%, #cfe8ef 0, transparent 40%),
+    radial-gradient(circle at 5% 5%, #fdf0d5 0, transparent 30%),
+    var(--bg);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+.shell {
+  min-height: 100vh;
+}
+
+.app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface), transparent 8%);
+  backdrop-filter: blur(8px);
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.links {
+  display: flex;
+  gap: 14px;
+}
+
+.links a {
+  text-decoration: none;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.links a.active {
+  color: var(--accent);
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.auth-card {
+  width: min(460px, 95vw);
+  display: grid;
+  gap: 10px;
+}
+
+input,
+select,
+button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  font: inherit;
+}
+
+button {
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.danger {
+  background: var(--danger);
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.toolbar {
+  display: flex;
+  gap: 16px;
+}
+
+.toolbar > div {
+  display: grid;
+  gap: 6px;
+}
+
+.stat-grid,
+.chart-grid,
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.stat-card p {
+  font-size: 1.65rem;
+  margin: 0;
+  color: var(--accent);
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.grid-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  padding: 8px;
+  vertical-align: top;
+}
+
+.error {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+pre {
+  max-height: 240px;
+  overflow: auto;
+  background: #f0f4f8;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  .links {
+    gap: 10px;
+    font-size: 0.9rem;
+  }
+
+  .app-nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
