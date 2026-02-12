@@ -14,7 +14,7 @@ export async function GET() {
   if (!user) return response;
 
   const rules = await prisma.classificationRule.findMany({
-    where: { userId: user.userId },
+    where: { userId: user.userId, category: { archivedAt: null } },
     include: { category: true },
     orderBy: { priority: "asc" }
   });
@@ -29,6 +29,11 @@ export async function POST(request: Request) {
   const body = await request.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+
+  const category = await prisma.category.findFirst({
+    where: { id: parsed.data.categoryId, userId: user.userId, archivedAt: null }
+  });
+  if (!category) return NextResponse.json({ error: "Active category not found" }, { status: 400 });
 
   const rule = await prisma.classificationRule.create({
     data: {

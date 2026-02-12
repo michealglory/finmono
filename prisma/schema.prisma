@@ -42,6 +42,7 @@ model User {
   updatedAt      DateTime              @updatedAt
   accounts       Account[]
   categories     Category[]
+  tags           Tag[]
   rules          ClassificationRule[]
   transactions   Transaction[]
   uploads        UploadedFile[]
@@ -71,10 +72,12 @@ model Category {
   name           String
   slug           String
   level          Int
+  isSystem       Boolean       @default(false)
+  archivedAt     DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent         Category?     @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  parent         Category?     @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: SetNull)
   children       Category[]    @relation("CategoryChildren")
   transactions   Transaction[]
   rules          ClassificationRule[]
@@ -82,6 +85,7 @@ model Category {
 
   @@unique([userId, slug])
   @@index([userId, level])
+  @@index([userId, archivedAt])
 }
 
 model ClassificationRule {
@@ -119,6 +123,7 @@ model Transaction {
   account             Account                @relation(fields: [accountId], references: [id], onDelete: Restrict)
   category            Category?              @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   lineItems           TransactionLineItem[]
+  tags                TransactionTag[]
   imports             ImportedTransaction[]
 
   @@index([userId, transactionDate])
@@ -139,8 +144,47 @@ model TransactionLineItem {
   createdAt        DateTime     @default(now())
   transaction      Transaction  @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   category         Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags             LineItemTag[]
 
   @@index([transactionId])
+}
+
+model Tag {
+  id            String           @id @default(cuid())
+  userId        String
+  name          String
+  color         String?
+  archivedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  TransactionTag[]
+  lineItems     LineItemTag[]
+
+  @@unique([userId, name])
+  @@index([userId, archivedAt])
+}
+
+model TransactionTag {
+  transactionId String
+  tagId         String
+  createdAt     DateTime      @default(now())
+  transaction   Transaction   @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  tag           Tag           @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([transactionId, tagId])
+  @@index([tagId])
+}
+
+model LineItemTag {
+  lineItemId    String
+  tagId         String
+  createdAt     DateTime           @default(now())
+  lineItem      TransactionLineItem @relation(fields: [lineItemId], references: [id], onDelete: Cascade)
+  tag           Tag                @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([lineItemId, tagId])
+  @@index([tagId])
 }
 
 model FXRate {

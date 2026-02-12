@@ -5,8 +5,7 @@ import { requireUser } from "@/server/auth/require-user";
 
 const schema = z.object({
   name: z.string().min(2),
-  parentId: z.string().optional().nullable(),
-  level: z.number().min(1).max(3)
+  color: z.string().optional().nullable()
 });
 
 export async function GET(request: Request) {
@@ -15,13 +14,13 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const includeArchived = url.searchParams.get("includeArchived") === "1";
-  const categories = await prisma.category.findMany({
+
+  const tags = await prisma.tag.findMany({
     where: { userId: user.userId, ...(includeArchived ? {} : { archivedAt: null }) },
-    include: { children: true },
-    orderBy: [{ level: "asc" }, { name: "asc" }]
+    orderBy: { name: "asc" }
   });
 
-  return NextResponse.json({ categories });
+  return NextResponse.json({ tags });
 }
 
 export async function POST(request: Request) {
@@ -30,21 +29,15 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const parsed = schema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  }
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const slug = `${parsed.data.name}-${Date.now()}`.toLowerCase().replace(/\s+/g, "-");
-
-  const category = await prisma.category.create({
+  const tag = await prisma.tag.create({
     data: {
       userId: user.userId,
       name: parsed.data.name,
-      slug,
-      parentId: parsed.data.parentId || null,
-      level: parsed.data.level
+      color: parsed.data.color || null
     }
   });
 
-  return NextResponse.json({ category }, { status: 201 });
+  return NextResponse.json({ tag }, { status: 201 });
 }

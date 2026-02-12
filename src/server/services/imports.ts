@@ -9,6 +9,7 @@ import { buildDedupeHash } from "@/server/services/dedupe";
 import { convertAmount } from "@/server/services/fx";
 import { parseCsv, parsePdfText, parseRawText, parseXlsx, type ParsedRow } from "@/server/services/file-parse";
 import { logAIAudit } from "@/server/services/ai-audit";
+import { ensureTagsByNames } from "@/server/services/tag-management";
 
 export type CandidateTransaction = {
   date: string;
@@ -174,7 +175,9 @@ export async function processStatementImport(jobId: string): Promise<void> {
       job.uploadedFile.path,
       job.uploadedFile.mimeType
     );
-    const rules = await prisma.classificationRule.findMany({ where: { userId: job.userId } });
+    const rules = await prisma.classificationRule.findMany({
+      where: { userId: job.userId, category: { archivedAt: null } }
+    });
     const account = await prisma.account.findFirst({ where: { userId: job.userId }, orderBy: { createdAt: "asc" } });
     if (!account) throw new Error("Create an account before importing statements");
 
@@ -256,7 +259,9 @@ export async function processReceiptImport(jobId: string): Promise<void> {
       job.uploadedFile.path,
       job.uploadedFile.mimeType
     );
-    const rules = await prisma.classificationRule.findMany({ where: { userId: job.userId } });
+    const rules = await prisma.classificationRule.findMany({
+      where: { userId: job.userId, category: { archivedAt: null } }
+    });
     const account = await prisma.account.findFirst({ where: { userId: job.userId } });
     if (!account) throw new Error("Create an account before importing receipts");
 
@@ -298,6 +303,17 @@ export async function processReceiptImport(jobId: string): Promise<void> {
       },
       include: { lineItems: true }
     });
+
+    const txTagIds = await ensureTagsByNames(
+      job.userId,
+      receipt.lineItems.map((item) => item.categoryHint || "").filter(Boolean)
+    );
+    if (txTagIds.length > 0) {
+      await prisma.transactionTag.createMany({
+        data: txTagIds.map((tagId) => ({ transactionId: transaction.id, tagId })),
+        skipDuplicates: true
+      });
+    }
 
     await prisma.importedTransaction.create({
       data: {

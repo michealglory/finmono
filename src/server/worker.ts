@@ -7,20 +7,24 @@ const boss = new PgBoss(env.DATABASE_URL);
 async function start() {
   await boss.start();
 
-  await boss.work("statement-import", async (job) => {
-    await processStatementImport(String(job.data.jobId));
+  await boss.work("statement-import", async (jobs) => {
+    const batch = Array.isArray(jobs) ? jobs : [jobs];
+    for (const job of batch) {
+      await processStatementImport(String((job.data as { jobId: string }).jobId));
+    }
   });
 
-  await boss.work("receipt-import", async (job) => {
-    await processReceiptImport(String(job.data.jobId));
+  await boss.work("receipt-import", async (jobs) => {
+    const batch = Array.isArray(jobs) ? jobs : [jobs];
+    for (const job of batch) {
+      await processReceiptImport(String((job.data as { jobId: string }).jobId));
+    }
   });
 
-  // eslint-disable-next-line no-console
   console.log("worker started");
 }
 
 start().catch((err) => {
-  // eslint-disable-next-line no-console
   console.error(err);
   process.exit(1);
 });
