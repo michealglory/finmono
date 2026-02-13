@@ -54,7 +54,7 @@ test("auth redirect and app navigation smoke", async ({ page }) => {
 
   await page.goto("/transactions");
   await page.waitForLoadState("networkidle");
-  await expect(page.getByText("Transaction drill-down")).toBeVisible();
+  await expect(page.getByText("Transaction lifecycle")).toBeVisible();
 
   await page.goto("/dashboard");
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();

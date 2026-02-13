@@ -42,6 +42,10 @@ Auth:
 
 Core:
 - `GET/POST /api/accounts`
+- `PATCH /api/accounts/:id`
+- `POST /api/accounts/:id/archive` (`archive`/`unarchive`)
+- `GET /api/accounts/:id/impact`
+- `DELETE /api/accounts/:id` (wizard payload: reassign or block)
 - `GET/POST /api/categories`
 - `PATCH /api/categories/:id`
 - `POST /api/categories/:id/archive` (`archive`/`unarchive`)
@@ -49,7 +53,8 @@ Core:
 - `DELETE /api/categories/:id` (wizard payload: reassign or uncategorized, plus child strategy)
 - `GET/POST /api/rules`
 - `GET/POST /api/transactions`
-- `PATCH /api/transactions/:id` (manual category override)
+- `PATCH /api/transactions/:id` (full edit + restore)
+- `DELETE /api/transactions/:id` (soft delete)
 - `GET /api/dashboard?preset=day|week|month|year|custom&from&to&currency=NGN|USD`
 
 Imports:
@@ -95,9 +100,9 @@ Privacy:
 ## 6) UI Pages
 
 - `/dashboard`: day/week/month/year/custom filters; consolidated totals, per-account totals, trend, category %, top merchants.
-- `/accounts`: multi-account management.
+- `/accounts`: multi-account management with edit/archive/delete wizard.
 - `/categories`: hierarchy + classification rules + archive/delete lifecycle manager.
-- `/transactions`: manual entry + drill-down + manual category override.
+- `/transactions`: manual entry + full edit + soft delete/restore lifecycle.
 - `/imports`: statement + receipt upload, review, confirm/reject with audit artifacts.
 - `/settings`: logout + delete my data.
 
@@ -124,6 +129,8 @@ Current core tests:
 - `tests/fx-utils.test.ts`
 - `tests/categorization.test.ts`
 - `tests/dedupe.test.ts`
+- `tests/account-management.test.ts`
+- `tests/transaction-lifecycle.test.ts`
 
 Run:
 ```bash
@@ -140,6 +147,13 @@ npm test
 
 ## 10) Archive vs Delete Semantics
 
+- Accounts:
+  - Archive is the default removal mode; archived accounts are hidden from new-entry pickers/import account selection.
+  - Existing transactions still reference archived accounts for historical integrity.
+  - Explicit delete supports reassigning transactions to another active account, or blocking deletion when transactions exist.
+- Transactions:
+  - Deletion is soft (`deletedAt`) with restore support.
+  - Soft-deleted transactions are excluded from normal lists/dashboard by default, and can be included/restored via lifecycle view.
 - Archive is the default removal mode for categories/subcategories.
 - Archived categories are hidden from new-entry pickers (manual entry/import classification), but existing transactions keep historical links and remain visible.
 - Restore is supported via unarchive action.
