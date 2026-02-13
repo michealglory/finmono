@@ -176,7 +176,10 @@ export async function processStatementImport(jobId: string): Promise<void> {
     const rules = await prisma.classificationRule.findMany({
       where: { userId: job.userId, category: { archivedAt: null } }
     });
-    const account = await prisma.account.findFirst({ where: { userId: job.userId }, orderBy: { createdAt: "asc" } });
+    const account = await prisma.account.findFirst({
+      where: { userId: job.userId, archivedAt: null },
+      orderBy: { createdAt: "asc" }
+    });
     if (!account) throw new Error("Create an account before importing statements");
 
     const baseCurrency = job.user.baseCurrency || env.BASE_CURRENCY;
@@ -260,7 +263,7 @@ export async function processReceiptImport(jobId: string): Promise<void> {
     const rules = await prisma.classificationRule.findMany({
       where: { userId: job.userId, category: { archivedAt: null } }
     });
-    const account = await prisma.account.findFirst({ where: { userId: job.userId } });
+    const account = await prisma.account.findFirst({ where: { userId: job.userId, archivedAt: null } });
     if (!account) throw new Error("Create an account before importing receipts");
 
     const baseCurrency = job.user.baseCurrency || env.BASE_CURRENCY;

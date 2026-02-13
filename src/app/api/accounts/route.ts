@@ -9,12 +9,15 @@ const schema = z.object({
   institution: z.string().optional().nullable()
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   const { user, response } = await requireUser();
   if (!user) return response;
 
+  const url = new URL(request.url);
+  const includeArchived = url.searchParams.get("includeArchived") === "1";
+
   const accounts = await prisma.account.findMany({
-    where: { userId: user.userId },
+    where: { userId: user.userId, ...(includeArchived ? {} : { archivedAt: null }) },
     orderBy: { createdAt: "desc" }
   });
 

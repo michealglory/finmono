@@ -26,6 +26,7 @@ export async function GET(request: Request) {
     prisma.transaction.findMany({
       where: {
         userId: user.userId,
+        deletedAt: null,
         transactionDate: {
           gte: start,
           lte: end

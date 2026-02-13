@@ -23,10 +23,12 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const accountId = url.searchParams.get("accountId");
+  const includeDeleted = url.searchParams.get("includeDeleted") === "1";
 
   const transactions = await prisma.transaction.findMany({
     where: {
       userId: user.userId,
+      ...(includeDeleted ? {} : { deletedAt: null }),
       ...(accountId ? { accountId } : {})
     },
     include: {
@@ -57,6 +59,22 @@ export async function POST(request: Request) {
 
   const transactionDate = new Date(parsed.data.transactionDate);
   const baseCurrency = parsed.data.baseCurrency || userRecord.baseCurrency;
+  const account = await prisma.account.findFirst({
+    where: { id: parsed.data.accountId, userId: user.userId, archivedAt: null }
+  });
+  if (!account) {
+    return NextResponse.json({ error: "Account is invalid or archived" }, { status: 400 });
+  }
+
+  if (parsed.data.categoryId) {
+    const category = await prisma.category.findFirst({
+      where: { id: parsed.data.categoryId, userId: user.userId, archivedAt: null }
+    });
+    if (!category) {
+      return NextResponse.json({ error: "Category is invalid or archived" }, { status: 400 });
+    }
+  }
+
   const amountBase = await convertAmount(
     parsed.data.amountOriginal,
     parsed.data.originalCurrency.toUpperCase(),
