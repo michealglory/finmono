@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Direction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/server/auth/require-user";
 import { convertAmount } from "@/server/services/fx";
+import { buildTransactionWhere } from "@/server/services/transaction-filters";
 
 const createSchema = z.object({
   accountId: z.string(),
@@ -23,14 +25,27 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const accountId = url.searchParams.get("accountId");
+  const categoryId = url.searchParams.get("categoryId");
+  const directionParam = url.searchParams.get("direction");
   const includeDeleted = url.searchParams.get("includeDeleted") === "1";
+  const q = url.searchParams.get("q");
+  const from = url.searchParams.get("from");
+  const to = url.searchParams.get("to");
+
+  const direction = directionParam === Direction.INCOME || directionParam === Direction.EXPENSE ? directionParam : null;
+
+  const where = buildTransactionWhere(user.userId, {
+    accountId,
+    categoryId,
+    direction: direction as Direction | null,
+    includeDeleted,
+    q,
+    from,
+    to
+  });
 
   const transactions = await prisma.transaction.findMany({
-    where: {
-      userId: user.userId,
-      ...(includeDeleted ? {} : { deletedAt: null }),
-      ...(accountId ? { accountId } : {})
-    },
+    where,
     include: {
       account: true,
       category: { include: { parent: true } }
