@@ -24,7 +24,7 @@ test("auth redirect and app navigation smoke", async ({ page }) => {
   const accountId = accountsData.accounts[0].id as string;
 
   await page.goto("/categories");
-  await page.getByRole("heading", { name: "Create major/subcategory/item-tag category" }).isVisible();
+  await page.getByRole("heading", { name: "Create category/subcategory" }).isVisible();
 
   const majorRes = await page.request.post("/api/categories", {
     data: { name: "E2E Feeding", level: 1 }

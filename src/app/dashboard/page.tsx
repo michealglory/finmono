@@ -18,7 +18,6 @@ type DashboardResponse = {
     originalCurrency: string;
     transactionDate: string;
     category?: { name: string; parent?: { name: string } } | null;
-    lineItems?: Array<{ id: string; description: string; amountOriginal: string }>;
   }>;
 };
 

@@ -14,7 +14,6 @@ type Category = {
 
 type Impact = {
   transactions: number;
-  lineItems: number;
   rules: number;
   importRows: number;
   childCategories: number;
@@ -140,13 +139,12 @@ export default function CategoriesPage() {
   return (
     <AppShell title="Categories/Subcategories Manager">
       <section className="card">
-        <h3>Create category/subcategory/tag-category</h3>
+        <h3>Create category/subcategory</h3>
         <form className="inline-form" onSubmit={addCategory}>
           <input placeholder="Feeding" value={name} onChange={(e) => setName(e.target.value)} required />
           <select value={level} onChange={(e) => setLevel(Number(e.target.value))}>
             <option value={1}>Major category</option>
             <option value={2}>Subcategory</option>
-            <option value={3}>Item tag category</option>
           </select>
 
           {level > 1 && (
@@ -226,7 +224,7 @@ export default function CategoriesPage() {
                   <td>{category.archivedAt ? "Archived" : "Active"}</td>
                   <td>
                     {impact
-                      ? `${impact.transactions} tx, ${impact.lineItems} line items, ${impact.rules} rules, ${impact.importRows} import refs, ${impact.childCategories} children`
+                      ? `${impact.transactions} tx, ${impact.rules} rules, ${impact.importRows} import refs, ${impact.childCategories} children`
                       : "..."}
                   </td>
                   <td className="inline-form">
@@ -266,7 +264,7 @@ export default function CategoriesPage() {
         <section className="card">
           <h3>Delete wizard</h3>
           <p>
-            This action updates all references in transactions, line items, rules, and import mappings inside a DB transaction.
+            This action updates all references in transactions, rules, and import mappings inside a DB transaction.
           </p>
 
           <div className="grid-form">

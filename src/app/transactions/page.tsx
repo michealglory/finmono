@@ -5,7 +5,6 @@ import { AppShell } from "@/components/shell";
 
 type Account = { id: string; name: string; currency: string };
 type Category = { id: string; name: string; level: number; parentId?: string | null };
-type Tag = { id: string; name: string };
 type Transaction = {
   id: string;
   description: string;
@@ -15,14 +14,11 @@ type Transaction = {
   transactionDate: string;
   account: { name: string };
   category?: { name: string; parent?: { name: string } | null } | null;
-  lineItems?: Array<{ id: string; description: string; amountOriginal: string }>;
-  tags?: Array<{ tag: { id: string; name: string } }>;
 };
 
 export default function TransactionsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const [accountId, setAccountId] = useState("");
@@ -34,23 +30,15 @@ export default function TransactionsPage() {
   const [currency, setCurrency] = useState("NGN");
   const [transactionDate, setTransactionDate] = useState(new Date().toISOString().slice(0, 10));
   const [overrideMap, setOverrideMap] = useState<Record<string, string>>({});
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const loadAll = useCallback(async () => {
-    const [a, c, tg, t] = await Promise.all([
-      fetch("/api/accounts"),
-      fetch("/api/categories"),
-      fetch("/api/tags"),
-      fetch("/api/transactions")
-    ]);
+    const [a, c, t] = await Promise.all([fetch("/api/accounts"), fetch("/api/categories"), fetch("/api/transactions")]);
     const accountsPayload = await a.json();
     const categoriesPayload = await c.json();
-    const tagsPayload = await tg.json();
     const transactionsPayload = await t.json();
 
     setAccounts(accountsPayload.accounts || []);
     setCategories(categoriesPayload.categories || []);
-    setTags(tagsPayload.tags || []);
     setTransactions(transactionsPayload.transactions || []);
     if (!accountId && accountsPayload.accounts?.[0]?.id) setAccountId(accountsPayload.accounts[0].id);
   }, [accountId]);
@@ -72,15 +60,13 @@ export default function TransactionsPage() {
         merchantName,
         amountOriginal: Number(amount),
         originalCurrency: currency,
-        transactionDate,
-        tagIds: selectedTagIds
+        transactionDate
       })
     });
 
     setDescription("");
     setMerchantName("");
     setAmount("0");
-    setSelectedTagIds([]);
     await loadAll();
   }
 
@@ -127,54 +113,23 @@ export default function TransactionsPage() {
             <option value="NGN">NGN</option>
             <option value="USD">USD</option>
           </select>
-          <select
-            value=""
-            onChange={(e) => {
-              const value = e.target.value;
-              if (!value) return;
-              setSelectedTagIds((current) => (current.includes(value) ? current : [...current, value]));
-              e.target.value = "";
-            }}
-          >
-            <option value="">Add tag</option>
-            {tags
-              .filter((tag) => !selectedTagIds.includes(tag.id))
-              .map((tag) => (
-                <option key={tag.id} value={tag.id}>
-                  {tag.name}
-                </option>
-              ))}
-          </select>
           <input type="date" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} required />
           <button type="submit">Save transaction</button>
         </form>
-        {selectedTagIds.length > 0 && (
-          <div className="inline-form">
-            {selectedTagIds.map((id) => {
-              const tag = tags.find((item) => item.id === id);
-              if (!tag) return null;
-              return (
-                <button key={id} type="button" onClick={() => setSelectedTagIds((current) => current.filter((x) => x !== id))}>
-                  {tag.name} ×
-                </button>
-              );
-            })}
-          </div>
-        )}
       </section>
 
       <section className="card">
         <h3>Transaction drill-down</h3>
         <table>
           <thead>
-              <tr>
-                <th>Date</th>
-                <th>Account</th>
-                <th>Category</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Manual Override</th>
-              </tr>
+            <tr>
+              <th>Date</th>
+              <th>Account</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Manual Override</th>
+            </tr>
           </thead>
           <tbody>
             {transactions.map((tx) => (
@@ -182,19 +137,7 @@ export default function TransactionsPage() {
                 <td>{tx.transactionDate.slice(0, 10)}</td>
                 <td>{tx.account.name}</td>
                 <td>{tx.category?.parent?.name ? `${tx.category.parent.name} / ${tx.category.name}` : tx.category?.name || "-"}</td>
-                <td>
-                  {tx.description}
-                  {(tx.tags || []).length > 0 && <div>Tags: {tx.tags?.map((entry) => entry.tag.name).join(", ")}</div>}
-                  {(tx.lineItems || []).length > 0 && (
-                    <ul>
-                      {(tx.lineItems || []).map((item) => (
-                        <li key={item.id}>
-                          {item.description}: {item.amountOriginal}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </td>
+                <td>{tx.description}</td>
                 <td>
                   {tx.originalCurrency} {tx.amountOriginal}
                 </td>

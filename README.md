@@ -21,10 +21,9 @@ Production-oriented personal finance app with multi-account, multi-currency, and
 Core tables:
 - `User`: auth identity, base currency.
 - `Account`: multiple financial accounts per user.
-- `Category`: hierarchy (`level` + `parentId`) for major/subcategory/item tag categories.
+- `Category`: hierarchy (`level` + `parentId`) for major/subcategory.
 - `ClassificationRule`: keyword -> category mapping with priority.
 - `Transaction`: one account per transaction, original amount/currency + normalized base amount/currency.
-- `TransactionLineItem`: optional itemized receipt lines.
 - `FXRate`: cached rates by day and pair.
 - `UploadedFile`: secure metadata + extracted raw text.
 - `ImportJob`: statement/receipt import lifecycle and status.
@@ -51,11 +50,6 @@ Core:
 - `GET/POST /api/rules`
 - `GET/POST /api/transactions`
 - `PATCH /api/transactions/:id` (manual category override)
-- `GET/POST /api/tags`
-- `PATCH /api/tags/:id`
-- `GET /api/tags/:id/impact`
-- `DELETE /api/tags/:id`
-- `POST /api/tags/:id/merge`
 - `GET /api/dashboard?preset=day|week|month|year|custom&from&to&currency=NGN|USD`
 
 Imports:
@@ -80,8 +74,8 @@ Privacy:
 
 ### Receipt import wizard
 1. Upload image/PDF.
-2. AI extraction of merchant/date/currency/total/line items (JSON schema).
-3. Create a single transaction with linked line items.
+2. AI extraction of merchant/date/currency/total (with optional item text captured in notes).
+3. Create a single transaction (no line-item rows).
 4. User review/confirm.
 
 ### Auditing and safety
@@ -102,7 +96,7 @@ Privacy:
 
 - `/dashboard`: day/week/month/year/custom filters; consolidated totals, per-account totals, trend, category %, top merchants.
 - `/accounts`: multi-account management.
-- `/categories`: hierarchy + classification rules.
+- `/categories`: hierarchy + classification rules + archive/delete lifecycle manager.
 - `/transactions`: manual entry + drill-down + manual category override.
 - `/imports`: statement + receipt upload, review, confirm/reject with audit artifacts.
 - `/settings`: logout + delete my data.
@@ -154,14 +148,12 @@ npm test
   - Move all references to system `Uncategorized` (auto-created if missing and protected from deletion).
 - Delete operations run in one DB transaction and update references in:
   - transactions
-  - line items
   - classification rules
   - import proposed-category mappings
 - Deleting a parent category requires a child strategy:
   - reassign children to another major category, or
   - archive children together, or
   - block until a decision is provided.
-- Tags support edit, delete (detaches associations), and merge (moves associations then removes source tag).
 
 ## 11) Screenshots (placeholders)
 

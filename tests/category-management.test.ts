@@ -9,7 +9,6 @@ const tx = {
     delete: vi.fn()
   },
   transaction: { updateMany: vi.fn() },
-  transactionLineItem: { updateMany: vi.fn() },
   classificationRule: { updateMany: vi.fn() },
   importedTransaction: { updateMany: vi.fn() }
 };
@@ -47,9 +46,6 @@ describe("category management delete strategy", () => {
     });
 
     expect(tx.transaction.updateMany).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { categoryId: "cat-b" } })
-    );
-    expect(tx.transactionLineItem.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({ data: { categoryId: "cat-b" } })
     );
     expect(tx.classificationRule.updateMany).toHaveBeenCalledWith(

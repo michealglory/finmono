@@ -14,7 +14,7 @@ type ImportJob = {
     id: string;
     duplicateOfId?: string | null;
     confidence?: string | null;
-    transaction?: { id: string; description: string; amountOriginal: string; lineItems: Array<{ id: string; description: string }> } | null;
+    transaction?: { id: string; description: string; amountOriginal: string } | null;
   }>;
 };
 
@@ -131,7 +131,6 @@ export default function ImportsPage() {
                   <th>Transaction</th>
                   <th>Duplicate?</th>
                   <th>Confidence</th>
-                  <th>Line items</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,7 +139,6 @@ export default function ImportsPage() {
                     <td>{row.transaction?.description || "Pending"}</td>
                     <td>{row.duplicateOfId ? "Yes" : "No"}</td>
                     <td>{row.confidence || "-"}</td>
-                    <td>{(row.transaction?.lineItems || []).map((item) => item.description).join(", ") || "-"}</td>
                   </tr>
                 ))}
               </tbody>
