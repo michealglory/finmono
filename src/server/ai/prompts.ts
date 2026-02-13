@@ -12,7 +12,6 @@ export const receiptPrompt = `
 You extract receipt details into strict JSON.
 Rules:
 - The total must reflect the final amount paid.
-- Include line items with amount and optional quantity/unitPrice.
 - Currency should be ISO code.
-- Do not invent items not on receipt.
+- Do not invent values not on receipt.
 `;

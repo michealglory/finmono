@@ -6,7 +6,7 @@ import { requireUser } from "@/server/auth/require-user";
 const schema = z.object({
   name: z.string().min(2),
   parentId: z.string().optional().nullable(),
-  level: z.number().min(1).max(3)
+  level: z.number().min(1).max(2)
 });
 
 export async function GET(request: Request) {

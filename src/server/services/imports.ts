@@ -9,7 +9,6 @@ import { buildDedupeHash } from "@/server/services/dedupe";
 import { convertAmount } from "@/server/services/fx";
 import { parseCsv, parsePdfText, parseRawText, parseXlsx, type ParsedRow } from "@/server/services/file-parse";
 import { logAIAudit } from "@/server/services/ai-audit";
-import { ensureTagsByNames } from "@/server/services/tag-management";
 
 export type CandidateTransaction = {
   date: string;
@@ -26,7 +25,6 @@ type ReceiptResult = {
   date: string;
   currency: string;
   total: number;
-  lineItems: Array<{ description: string; quantity?: number | null; unitPrice?: number | null; amount: number; categoryHint?: string | null }>;
 };
 
 function normalizeRowToCandidate(row: ParsedRow): CandidateTransaction | null {
@@ -290,30 +288,9 @@ export async function processReceiptImport(jobId: string): Promise<void> {
         baseCurrency,
         transactionDate: new Date(receipt.date),
         sourceHash: dedupeHash,
-        lineItems: {
-          create: receipt.lineItems.map((item) => ({
-            description: item.description,
-            amountOriginal: item.amount,
-            currency: receipt.currency,
-            quantity: item.quantity ?? null,
-            unitPrice: item.unitPrice ?? null,
-            itemTag: item.categoryHint ?? null
-          }))
-        }
-      },
-      include: { lineItems: true }
+        notes: null
+      }
     });
-
-    const txTagIds = await ensureTagsByNames(
-      job.userId,
-      receipt.lineItems.map((item) => item.categoryHint || "").filter(Boolean)
-    );
-    if (txTagIds.length > 0) {
-      await prisma.transactionTag.createMany({
-        data: txTagIds.map((tagId) => ({ transactionId: transaction.id, tagId })),
-        skipDuplicates: true
-      });
-    }
 
     await prisma.importedTransaction.create({
       data: {

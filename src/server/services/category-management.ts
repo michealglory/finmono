@@ -44,15 +44,14 @@ export async function ensureUncategorizedCategory(tx: CategoryTx, userId: string
 }
 
 export async function getCategoryImpactCounts(userId: string, categoryId: string) {
-  const [transactions, lineItems, rules, importRows, childCategories] = await Promise.all([
+  const [transactions, rules, importRows, childCategories] = await Promise.all([
     prisma.transaction.count({ where: { userId, categoryId } }),
-    prisma.transactionLineItem.count({ where: { transaction: { userId }, categoryId } }),
     prisma.classificationRule.count({ where: { userId, categoryId } }),
     prisma.importedTransaction.count({ where: { importJob: { userId }, proposedCategoryId: categoryId } }),
     prisma.category.count({ where: { userId, parentId: categoryId } })
   ]);
 
-  return { transactions, lineItems, rules, importRows, childCategories };
+  return { transactions, rules, importRows, childCategories };
 }
 
 export async function archiveCategory(userId: string, categoryId: string, archived: boolean) {
@@ -134,11 +133,6 @@ export async function deleteCategoryWithStrategy(input: DeleteCategoryInput) {
 
     await tx.transaction.updateMany({
       where: { userId: input.userId, categoryId: category.id },
-      data: { categoryId: targetCategoryId }
-    });
-
-    await tx.transactionLineItem.updateMany({
-      where: { transaction: { userId: input.userId }, categoryId: category.id },
       data: { categoryId: targetCategoryId }
     });
 

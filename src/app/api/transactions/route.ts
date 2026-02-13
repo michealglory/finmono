@@ -14,8 +14,7 @@ const createSchema = z.object({
   originalCurrency: z.string().min(3).max(3),
   baseCurrency: z.string().min(3).max(3).optional(),
   transactionDate: z.string(),
-  notes: z.string().optional().nullable(),
-  tagIds: z.array(z.string()).optional()
+  notes: z.string().optional().nullable()
 });
 
 export async function GET(request: Request) {
@@ -32,9 +31,7 @@ export async function GET(request: Request) {
     },
     include: {
       account: true,
-      category: { include: { parent: true } },
-      lineItems: { include: { tags: { include: { tag: true } } } },
-      tags: { include: { tag: true } }
+      category: { include: { parent: true } }
     },
     orderBy: { transactionDate: "desc" },
     take: 300
@@ -60,15 +57,6 @@ export async function POST(request: Request) {
 
   const transactionDate = new Date(parsed.data.transactionDate);
   const baseCurrency = parsed.data.baseCurrency || userRecord.baseCurrency;
-  if (parsed.data.tagIds && parsed.data.tagIds.length > 0) {
-    const ownedTags = await prisma.tag.count({
-      where: { userId: user.userId, id: { in: parsed.data.tagIds }, archivedAt: null }
-    });
-    if (ownedTags !== parsed.data.tagIds.length) {
-      return NextResponse.json({ error: "One or more tags are invalid/archived" }, { status: 400 });
-    }
-  }
-
   const amountBase = await convertAmount(
     parsed.data.amountOriginal,
     parsed.data.originalCurrency.toUpperCase(),
@@ -89,16 +77,7 @@ export async function POST(request: Request) {
       amountBase,
       baseCurrency: baseCurrency.toUpperCase(),
       transactionDate,
-      notes: parsed.data.notes || null,
-      ...(parsed.data.tagIds && parsed.data.tagIds.length > 0
-        ? {
-            tags: {
-              create: parsed.data.tagIds.map((tagId) => ({
-                tag: { connect: { id: tagId } }
-              }))
-            }
-          }
-        : {})
+      notes: parsed.data.notes || null
     }
   });
 

@@ -13,7 +13,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       extractedRows: {
         include: {
           transaction: {
-            include: { lineItems: true, account: true, category: true }
+            include: { account: true, category: true }
           }
         }
       },

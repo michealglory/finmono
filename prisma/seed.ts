@@ -126,38 +126,6 @@ async function main() {
     skipDuplicates: true
   });
 
-  const [essential, groceries] = await Promise.all([
-    prisma.tag.upsert({
-      where: { userId_name: { userId: user.id, name: "Essential" } },
-      update: {},
-      create: { userId: user.id, name: "Essential", color: "#005f73" }
-    }),
-    prisma.tag.upsert({
-      where: { userId_name: { userId: user.id, name: "Groceries" } },
-      update: {},
-      create: { userId: user.id, name: "Groceries", color: "#0a9396" }
-    })
-  ]);
-
-  const tx = await prisma.transaction.findFirst({
-    where: { userId: user.id, categoryId: rice.id },
-    orderBy: { transactionDate: "desc" },
-    include: { lineItems: true }
-  });
-
-  if (tx) {
-    await prisma.transactionTag.upsert({
-      where: { transactionId_tagId: { transactionId: tx.id, tagId: groceries.id } },
-      update: {},
-      create: { transactionId: tx.id, tagId: groceries.id }
-    });
-    await prisma.transactionTag.upsert({
-      where: { transactionId_tagId: { transactionId: tx.id, tagId: essential.id } },
-      update: {},
-      create: { transactionId: tx.id, tagId: essential.id }
-    });
-  }
-
   // eslint-disable-next-line no-console
   console.log("Seeded demo user:", email, "password: DemoPass123!");
 }

@@ -7,7 +7,7 @@ import { deleteCategoryWithStrategy } from "@/server/services/category-managemen
 const patchSchema = z.object({
   name: z.string().min(2).optional(),
   parentId: z.string().nullable().optional(),
-  level: z.number().min(1).max(3).optional()
+  level: z.number().min(1).max(2).optional()
 });
 
 const deleteSchema = z.object({

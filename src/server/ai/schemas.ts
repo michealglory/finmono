@@ -19,14 +19,5 @@ export const receiptExtractionSchema = z.object({
   merchantName: z.string().nullable(),
   date: z.string(),
   currency: z.string(),
-  total: z.number(),
-  lineItems: z.array(
-    z.object({
-      description: z.string(),
-      quantity: z.number().optional().nullable(),
-      unitPrice: z.number().optional().nullable(),
-      amount: z.number(),
-      categoryHint: z.string().optional().nullable()
-    })
-  )
+  total: z.number()
 });

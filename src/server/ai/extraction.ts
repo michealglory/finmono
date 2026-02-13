@@ -42,24 +42,9 @@ const receiptJsonSchema = {
       merchantName: { type: ["string", "null"] },
       date: { type: "string" },
       currency: { type: "string" },
-      total: { type: "number" },
-      lineItems: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            description: { type: "string" },
-            quantity: { type: ["number", "null"] },
-            unitPrice: { type: ["number", "null"] },
-            amount: { type: "number" },
-            categoryHint: { type: ["string", "null"] }
-          },
-          required: ["description", "quantity", "unitPrice", "amount", "categoryHint"]
-        }
-      }
+      total: { type: "number" }
     },
-    required: ["merchantName", "date", "currency", "total", "lineItems"]
+    required: ["merchantName", "date", "currency", "total"]
   }
 } as const;
 

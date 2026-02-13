@@ -33,8 +33,7 @@ export async function GET(request: Request) {
       },
       include: {
         category: { include: { parent: true } },
-        account: true,
-        lineItems: true
+        account: true
       },
       orderBy: { transactionDate: "asc" }
     })
