@@ -53,6 +53,7 @@ Core:
 - `DELETE /api/categories/:id` (wizard payload: reassign or uncategorized, plus child strategy)
 - `GET/POST /api/rules`
 - `GET/POST /api/transactions`
+- `POST /api/transactions/bulk` (bulk assign/clear category, soft delete, restore)
 - `PATCH /api/transactions/:id` (full edit + restore)
 - `DELETE /api/transactions/:id` (soft delete)
 - `GET /api/dashboard?preset=day|week|month|year|custom&from&to&currency=NGN|USD`
@@ -102,7 +103,7 @@ Privacy:
 - `/dashboard`: day/week/month/year/custom filters; consolidated totals, per-account totals, trend, category %, top merchants.
 - `/accounts`: multi-account management with edit/archive/delete wizard.
 - `/categories`: hierarchy + classification rules + archive/delete lifecycle manager.
-- `/transactions`: manual entry + full edit + soft delete/restore lifecycle.
+- `/transactions`: manual entry + full edit + soft delete/restore lifecycle + bulk actions with multi-select/filter scope.
 - `/imports`: statement + receipt upload, review, confirm/reject with audit artifacts.
 - `/settings`: logout + delete my data.
 
@@ -176,13 +177,19 @@ npm test
 - `docs/screenshots/transactions.png`
 - `docs/screenshots/imports-review.png`
 
-## 12) Next Improvements
+## 12) Next Improvements (Incoming Features)
 
-1. Add account selection step in import wizard before processing.
-2. Add OCR fallback pipeline for scanned PDFs (pdf->image rasterization).
-3. Add anomaly detection (unusual merchant/category spend).
-4. Add recurring transaction rules.
-5. Add budget planning and alerts by category/account.
-6. Add 2FA + email verification.
-7. Add export pack (`CSV/PDF`) and encrypted backup.
-8. Add WebSocket job progress updates.
+1. Add row-level edit in import review so users can fix category/date/amount before confirm.
+2. Add explicit account picker in import wizard instead of defaulting to the first account.
+3. Add background job progress indicator with auto-refresh (reduce manual `Load job` polling).
+4. Add failed-row/error report export (CSV) for unparsed or rejected rows.
+5. Add bank/provider import templates (e.g., OPay, GTBank, Wise) with reusable mapping profiles.
+6. Add header alias + fuzzy column mapping for non-standard statement headers.
+7. Add row stitching for wrapped multi-line transaction descriptions.
+8. Add OCR fallback pipeline for scanned PDFs (pdf->image rasterization + cleanup).
+9. Add per-row validation diagnostics in review (missing date/amount, ambiguous fields, parse errors).
+10. Add anomaly detection (unusual merchant/category spend).
+11. Add recurring transaction rules.
+12. Add budget planning and alerts by category/account.
+13. Add 2FA + email verification.
+14. Add export pack (`CSV/PDF`) and encrypted backup.
