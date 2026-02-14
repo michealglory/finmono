@@ -54,7 +54,7 @@ export function AppNav() {
       )}
       <aside className={`app-sidebar ${isOpen ? "open" : "closed"}`}>
         <div className="sidebar-head">
-          <div className="brand">FinanceFlow</div>
+          <div className="brand">Finmono</div>
           <button type="button" className="sidebar-toggle" aria-label="Hide menu" onClick={() => setIsOpen(false)}>
             <FontAwesomeIcon icon={faChevronLeft} />
           </button>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FinanceFlow",
+  title: "Finmono",
   description: "Personal finance tracker with multi-account, multi-currency and AI imports"
 };
 

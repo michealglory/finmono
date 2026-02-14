@@ -1,4 +1,4 @@
-# FinanceFlow (v1)
+# Finmono (v1)
 
 Production-oriented personal finance app with multi-account, multi-currency, and AI-assisted imports.
 
@@ -123,7 +123,7 @@ cp .env.example .env && docker compose up -d && npm install && npm run prisma:mi
 Open [http://localhost:3000](http://localhost:3000)
 
 Demo user from seed:
-- Email: `demo@financeflow.local`
+- Email: `demo@finmono.local`
 - Password: `DemoPass123!`
 
 ## 8) Tests
