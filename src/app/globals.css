@@ -236,6 +236,14 @@ label {
   gap: 10px;
 }
 
+.filters-panel {
+  margin-top: 8px;
+  border: 1px solid color-mix(in srgb, var(--line), transparent 18%);
+  border-radius: 10px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--surface), #f2f6f9 24%);
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -284,6 +292,18 @@ td {
 .transactions-table .amount-col {
   text-align: right;
   white-space: nowrap;
+}
+
+.transactions-table th:nth-child(2),
+.transactions-table td:nth-child(2) {
+  white-space: nowrap;
+  width: 120px;
+}
+
+.transactions-table th:nth-child(3),
+.transactions-table td:nth-child(3) {
+  white-space: nowrap;
+  width: 150px;
 }
 
 .bulk-bar {

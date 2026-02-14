@@ -2,7 +2,15 @@
 
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faTrashCan, faRotateLeft, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPenToSquare,
+  faTrashCan,
+  faRotateLeft,
+  faTrash,
+  faFilter,
+  faXmark,
+  faPlus
+} from "@fortawesome/free-solid-svg-icons";
 import { AppShell } from "@/components/shell";
 
 type Account = { id: string; name: string; currency: string; archivedAt?: string | null };
@@ -406,9 +414,11 @@ export default function TransactionsPage() {
       >
         <div className="inline-form section-head" style={{ justifyContent: "space-between", alignItems: "center" }}>
           <h3>Add new transaction</h3>
-          <button type="button" onClick={() => setShowAddForm((value) => !value)}>
-            {showAddForm ? "Hide form" : "Add transaction"}
-          </button>
+          {!showAddForm && (
+            <button type="button" onClick={() => setShowAddForm(true)}>
+              <FontAwesomeIcon icon={faPlus} /> Add transaction
+            </button>
+          )}
         </div>
 
         {showAddForm && (
@@ -456,16 +466,19 @@ export default function TransactionsPage() {
         <div className="inline-form section-head" style={{ justifyContent: "space-between", alignItems: "center" }}>
           <div className="inline-form">
             <button type="button" onClick={() => setViewMode("active")} className={viewMode === "active" ? "" : "secondary"}>
-              Transactions
+              Transactions {viewMode === "active" ? `(${pagination.totalCount})` : ""}
             </button>
             <button type="button" onClick={() => setViewMode("bin")} className={viewMode === "bin" ? "" : "secondary"}>
-              Bin
+              Bin {viewMode === "bin" ? `(${pagination.totalCount})` : ""}
             </button>
           </div>
           <div className="inline-form">
-            <button type="button" onClick={() => setShowFilters((value) => !value)}>
-              {showFilters ? "Hide filters" : "Show filters"}
-            </button>
+            <IconButton
+              label={showFilters ? "Hide filters" : "Show filters"}
+              onClick={() => setShowFilters((value) => !value)}
+            >
+              <FontAwesomeIcon icon={showFilters ? faXmark : faFilter} />
+            </IconButton>
             {viewMode === "bin" && (
               <button type="button" className="danger" onClick={emptyDeletedTransactions}>
                 Empty bin
@@ -476,7 +489,7 @@ export default function TransactionsPage() {
 
         {showFilters && (
           <>
-            <div className="grid-form">
+            <div className="grid-form filters-panel">
           <label>
             Search
             <input value={filterQuery} onChange={(e) => setFilterQuery(e.target.value)} placeholder="Description or merchant" />
