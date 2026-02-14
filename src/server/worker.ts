@@ -6,6 +6,8 @@ const boss = new PgBoss(env.DATABASE_URL);
 
 async function start() {
   await boss.start();
+  await boss.createQueue("statement-import");
+  await boss.createQueue("receipt-import");
 
   await boss.work("statement-import", async (jobs) => {
     const batch = Array.isArray(jobs) ? jobs : [jobs];

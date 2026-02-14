@@ -2,7 +2,7 @@ import { Direction, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { buildTransactionWhere, type TransactionFilterInput } from "@/server/services/transaction-filters";
 
-type BulkAction = "assign_category" | "clear_category" | "soft_delete" | "restore";
+type BulkAction = "assign_category" | "clear_category" | "soft_delete" | "restore" | "permanent_delete";
 
 type Selection =
   | {
@@ -34,7 +34,7 @@ function baseWhereForSelection(userId: string, selection: Selection): Prisma.Tra
 }
 
 function eligibilityForAction(action: BulkAction): Prisma.TransactionWhereInput {
-  if (action === "restore") {
+  if (action === "restore" || action === "permanent_delete") {
     return { deletedAt: { not: null } };
   }
 
@@ -59,7 +59,11 @@ function updateDataForAction(action: BulkAction, data?: BulkInput["data"]): Pris
     return { deletedAt: new Date() };
   }
 
-  return { deletedAt: null };
+  if (action === "restore") {
+    return { deletedAt: null };
+  }
+
+  throw new Error("permanent_delete does not use updateMany payload");
 }
 
 export async function applyBulkTransactionAction(input: BulkInput) {
@@ -79,13 +83,38 @@ export async function applyBulkTransactionAction(input: BulkInput) {
     AND: [baseWhere, eligibilityForAction(input.action)]
   };
 
-  const [matchedCount, updated] = await prisma.$transaction([
-    prisma.transaction.count({ where: baseWhere }),
-    prisma.transaction.updateMany({
+  const matchedCount = await prisma.transaction.count({ where: baseWhere });
+
+  if (input.action === "permanent_delete") {
+    const eligible = await prisma.transaction.findMany({
       where: eligibleWhere,
-      data: updateDataForAction(input.action, input.data)
-    })
-  ]);
+      select: { id: true }
+    });
+    const eligibleIds = eligible.map((row) => row.id);
+
+    if (eligibleIds.length > 0) {
+      await prisma.$transaction([
+        prisma.importedTransaction.updateMany({
+          where: { transactionId: { in: eligibleIds } },
+          data: { transactionId: null }
+        }),
+        prisma.transaction.deleteMany({
+          where: { id: { in: eligibleIds }, userId: input.userId, deletedAt: { not: null } }
+        })
+      ]);
+    }
+
+    return {
+      matchedCount,
+      updatedCount: eligibleIds.length,
+      skippedCount: Math.max(0, matchedCount - eligibleIds.length)
+    };
+  }
+
+  const updated = await prisma.transaction.updateMany({
+    where: eligibleWhere,
+    data: updateDataForAction(input.action, input.data)
+  });
 
   return {
     matchedCount,

@@ -3,6 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const prismaMock = {
   transaction: {
     count: vi.fn(),
+    updateMany: vi.fn(),
+    findMany: vi.fn(),
+    deleteMany: vi.fn()
+  },
+  importedTransaction: {
     updateMany: vi.fn()
   },
   category: {
@@ -17,6 +22,9 @@ describe("transaction bulk actions", () => {
   beforeEach(() => {
     prismaMock.transaction.count.mockReset();
     prismaMock.transaction.updateMany.mockReset();
+    prismaMock.transaction.findMany.mockReset();
+    prismaMock.transaction.deleteMany.mockReset();
+    prismaMock.importedTransaction.updateMany.mockReset();
     prismaMock.category.findFirst.mockReset();
     prismaMock.$transaction.mockClear();
   });
@@ -111,5 +119,21 @@ describe("transaction bulk actions", () => {
         data: { categoryId: "cat-x" }
       })
     ).rejects.toThrow(/invalid or archived/i);
+  });
+
+  it("permanently deletes only deleted transactions and detaches import rows", async () => {
+    prismaMock.transaction.count.mockResolvedValue(3);
+    prismaMock.transaction.findMany.mockResolvedValue([{ id: "tx-1" }, { id: "tx-2" }]);
+    prismaMock.importedTransaction.updateMany.mockResolvedValue({ count: 2 });
+    prismaMock.transaction.deleteMany.mockResolvedValue({ count: 2 });
+
+    const { applyBulkTransactionAction } = await import("@/server/services/transaction-bulk");
+    const result = await applyBulkTransactionAction({
+      userId: "user-1",
+      action: "permanent_delete",
+      selection: { mode: "explicit_ids", ids: ["tx-1", "tx-2", "tx-3"] }
+    });
+
+    expect(result).toEqual({ matchedCount: 3, updatedCount: 2, skippedCount: 1 });
   });
 });

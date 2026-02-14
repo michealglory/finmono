@@ -56,6 +56,8 @@ Core:
 - `POST /api/transactions/bulk` (bulk assign/clear category, soft delete, restore)
 - `PATCH /api/transactions/:id` (full edit + restore)
 - `DELETE /api/transactions/:id` (soft delete)
+- `DELETE /api/transactions/:id/permanent` (permanent delete, deleted rows only)
+- `POST /api/transactions/purge` (empty bin / bulk permanent delete for deleted rows)
 - `GET /api/dashboard?preset=day|week|month|year|custom&from&to&currency=NGN|USD`
 
 Imports:
@@ -103,7 +105,7 @@ Privacy:
 - `/dashboard`: day/week/month/year/custom filters; consolidated totals, per-account totals, trend, category %, top merchants.
 - `/accounts`: multi-account management with edit/archive/delete wizard.
 - `/categories`: hierarchy + classification rules + archive/delete lifecycle manager.
-- `/transactions`: manual entry + full edit + soft delete/restore lifecycle + bulk actions with multi-select/filter scope.
+- `/transactions`: active transactions + Bin views, full edit, restore, delete (move to bin), permanent delete from Bin, and bulk actions.
 - `/imports`: statement + receipt upload, review, confirm/reject with audit artifacts.
 - `/settings`: logout + delete my data.
 
@@ -153,8 +155,9 @@ npm test
   - Existing transactions still reference archived accounts for historical integrity.
   - Explicit delete supports reassigning transactions to another active account, or blocking deletion when transactions exist.
 - Transactions:
-  - Deletion is soft (`deletedAt`) with restore support.
-  - Soft-deleted transactions are excluded from normal lists/dashboard by default, and can be included/restored via lifecycle view.
+  - Delete moves a transaction to Bin (`deletedAt` set).
+  - Deleted transactions are excluded from normal lists/dashboard by default.
+  - Bin provides restore and permanent delete actions, plus empty bin.
 - Archive is the default removal mode for categories/subcategories.
 - Archived categories are hidden from new-entry pickers (manual entry/import classification), but existing transactions keep historical links and remain visible.
 - Restore is supported via unarchive action.

@@ -16,7 +16,7 @@ const filtersSchema = z.object({
 
 const bulkSchema = z
   .object({
-    action: z.enum(["assign_category", "clear_category", "soft_delete", "restore"]),
+    action: z.enum(["assign_category", "clear_category", "soft_delete", "restore", "permanent_delete"]),
     selection: z.discriminatedUnion("mode", [
       z.object({
         mode: z.literal("explicit_ids"),

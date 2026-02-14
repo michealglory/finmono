@@ -14,9 +14,21 @@ type ImportJob = {
     id: string;
     duplicateOfId?: string | null;
     confidence?: string | null;
+    rawPayload?: {
+      date?: string;
+      amount?: number;
+      currency?: string;
+      direction?: "INCOME" | "EXPENSE";
+      description?: string;
+    } | null;
     transaction?: { id: string; description: string; amountOriginal: string } | null;
   }>;
 };
+
+function formatAmount(value?: number | null) {
+  if (typeof value !== "number" || Number.isNaN(value)) return "-";
+  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 export default function ImportsPage() {
   const [statementFile, setStatementFile] = useState<File | null>(null);
@@ -128,7 +140,10 @@ export default function ImportsPage() {
             <table>
               <thead>
                 <tr>
+                  <th>Date</th>
                   <th>Transaction</th>
+                  <th>Direction</th>
+                  <th>Amount</th>
                   <th>Duplicate?</th>
                   <th>Confidence</th>
                 </tr>
@@ -136,7 +151,12 @@ export default function ImportsPage() {
               <tbody>
                 {(job.extractedRows || []).map((row) => (
                   <tr key={row.id}>
-                    <td>{row.transaction?.description || "Pending"}</td>
+                    <td>{row.rawPayload?.date || "-"}</td>
+                    <td>{row.rawPayload?.description || row.transaction?.description || "Pending"}</td>
+                    <td>{row.rawPayload?.direction || "-"}</td>
+                    <td>
+                      {row.rawPayload?.currency || ""} {formatAmount(row.rawPayload?.amount)}
+                    </td>
                     <td>{row.duplicateOfId ? "Yes" : "No"}</td>
                     <td>{row.confidence || "-"}</td>
                   </tr>

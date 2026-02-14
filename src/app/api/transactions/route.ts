@@ -28,9 +28,12 @@ export async function GET(request: Request) {
   const categoryId = url.searchParams.get("categoryId");
   const directionParam = url.searchParams.get("direction");
   const includeDeleted = url.searchParams.get("includeDeleted") === "1";
+  const deletedOnly = url.searchParams.get("deletedOnly") === "1";
   const q = url.searchParams.get("q");
   const from = url.searchParams.get("from");
   const to = url.searchParams.get("to");
+  const page = Math.max(1, Number(url.searchParams.get("page") || 1));
+  const pageSize = Math.min(100, Math.max(10, Number(url.searchParams.get("pageSize") || 25)));
 
   const direction = directionParam === Direction.INCOME || directionParam === Direction.EXPENSE ? directionParam : null;
 
@@ -44,17 +47,33 @@ export async function GET(request: Request) {
     to
   });
 
-  const transactions = await prisma.transaction.findMany({
-    where,
-    include: {
-      account: true,
-      category: { include: { parent: true } }
-    },
-    orderBy: { transactionDate: "desc" },
-    take: 300
-  });
+  if (deletedOnly) {
+    where.deletedAt = { not: null };
+  }
 
-  return NextResponse.json({ transactions });
+  const [totalCount, transactions] = await prisma.$transaction([
+    prisma.transaction.count({ where }),
+    prisma.transaction.findMany({
+      where,
+      include: {
+        account: true,
+        category: { include: { parent: true } }
+      },
+      orderBy: { transactionDate: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize
+    })
+  ]);
+
+  return NextResponse.json({
+    transactions,
+    pagination: {
+      page,
+      pageSize,
+      totalCount,
+      totalPages: Math.max(1, Math.ceil(totalCount / pageSize))
+    }
+  });
 }
 
 export async function POST(request: Request) {

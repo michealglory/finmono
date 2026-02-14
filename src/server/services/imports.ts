@@ -27,25 +27,46 @@ type ReceiptResult = {
   total: number;
 };
 
-function normalizeRowToCandidate(row: ParsedRow): CandidateTransaction | null {
+function parseNumericField(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).replace(/,/g, "").trim();
+  if (!normalized) return null;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function normalizeRowToCandidate(row: ParsedRow): CandidateTransaction | null {
   const description = row.description || row.narration || row.details || row.memo;
-  const date = row.date || row.transaction_date || row.posted_at;
-  const amountRaw = row.amount || row.debit || row.credit;
+  const date = row.date || row.date_time || row.transaction_date || row.posted_at;
   const currency = row.currency || "NGN";
 
-  if (!description || !date || !amountRaw) return null;
+  if (!description || !date) return null;
 
-  const amount = Number(String(amountRaw).replace(/,/g, ""));
-  if (!Number.isFinite(amount)) return null;
+  const debit = parseNumericField(row.debit);
+  const credit = parseNumericField(row.credit);
+  const amount = parseNumericField(row.amount);
 
-  const debit = row.debit ? Number(String(row.debit).replace(/,/g, "")) : null;
-  const direction = debit && debit > 0 ? "EXPENSE" : amount < 0 ? "EXPENSE" : "INCOME";
+  let parsedAmount: number | null = null;
+  let direction: "INCOME" | "EXPENSE" | null = null;
+
+  if (debit !== null && debit > 0) {
+    parsedAmount = debit;
+    direction = "EXPENSE";
+  } else if (credit !== null && credit > 0) {
+    parsedAmount = credit;
+    direction = "INCOME";
+  } else if (amount !== null && amount !== 0) {
+    parsedAmount = Math.abs(amount);
+    direction = amount < 0 ? "EXPENSE" : "INCOME";
+  }
+
+  if (parsedAmount === null || direction === null) return null;
 
   return {
     date,
     description,
     merchantName: row.merchant || null,
-    amount: Math.abs(amount),
+    amount: parsedAmount,
     currency,
     direction
   };
